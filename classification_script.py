@@ -59,8 +59,8 @@ post_rew_t = 500
 ms_per_bin = 25
 n_iterations =50
 win_range = [0, 10000]
-for ib in range(3):#range(len(brain_reg_interest)):
-    for ici in range(len(categories)):
+for ib in [11]:#range(2):#range(len(brain_reg_interest)):
+    for ici in [2]:#range(3):#range(len(categories)):
         icat = categories[ici]
         brain_reg  = brain_reg_interest[ib]
         id_cat = np.intersect1d(np.argwhere(np.asarray(d_['phase']== icat[0])==True),np.argwhere(np.asarray(d_['batch']== icat[1])==True))
@@ -75,7 +75,7 @@ for ib in range(3):#range(len(brain_reg_interest)):
         sel_neurons = d_['single_unit_mat'].to_numpy()[rows_pass]  
         sel_neurons_ids = d_['cluId'].to_numpy()[rows_pass]  
         n_sessions  = np.unique(sel_sessions)
-        print([n_sessions, brain_reg,len(sel_neurons)])
+        print([n_sessions, brain_reg,len(sel_neurons),icat[-1]])
         for isess in range(len(n_sessions)):
             
             id_this = np.argwhere(sel_sessions==n_sessions[isess])
@@ -125,15 +125,17 @@ for ib in range(3):#range(len(brain_reg_interest)):
             spbins_all =[]
             for (tr_type,iit) in zip(tr_common,np.arange(len(tr_common))):
                 
-                res_path =  os.path.join(save_path,session_n,'trial_type_'+str(tr_type),'results')
-                path_to_data = os.path.join(save_path,session_n,'trial_type_' + str(tr_type))
+                res_path =  os.path.join(save_path,session_n+ '_' + brain_reg + '_'+ mouse,'trial_type_'+str(tr_type),'results')
+                path_to_data = os.path.join(save_path,session_n+ '_' + brain_reg + '_'+ mouse,'trial_type_' + str(tr_type))
+                
                 file_list = glob.glob(os.path.join(res_path,"*.json"))
                 cell_ids = np.unique([ii.split('/')[-1].split('.json')[0].split('_')[-1] for ii in file_list])
                 data_processor = DataProcessor(path_to_data, cell_range, win_range)
                 spbins = data_processor.spikes_binned
                 spbins = [spbins[ii] for ii in range(len(spbins))]
                 spbins_all.append(spbins)
-            #% % 
+            
+
             # Re bin into 0.010 (10 ms) instead of 1 ms
             # Classification for time bins: only from 1sec pre + cue-reward + 2 sec post reward
             # - This will be different for each trial type: [1000: 2000+delay+2000]
@@ -279,8 +281,8 @@ for ib in range(3):#range(len(brain_reg_interest)):
             clf = LinearDiscriminantAnalysis()
             clf.fit(X_train, y_train)
             utype= np.unique(y_test)
-            lab_matrix = np.zeros((len(utype),len(utype)))
-            lab_matrix_sh = np.zeros((len(utype),len(utype)))
+            lab_matrix = np.nan*np.ones((len(utype),len(utype)))
+            lab_matrix_sh = np.nan*np.ones((len(utype),len(utype)))
             clf_sh = LinearDiscriminantAnalysis()
             id_rand = np.random.randint(0,len(y_train),size=len(y_train))
             clf_sh.fit(X_train, y_train[id_rand])
@@ -290,12 +292,15 @@ for ib in range(3):#range(len(brain_reg_interest)):
                 yl_sh = clf_sh.predict(X_test[ids,:]) 
                 upred = np.unique(yl)
                 for (iul,iiul) in zip(upred,range(len(upred))):
-                    idrow = np.argwhere(utype==iul).flatten()[0]
-                    idlabs = np.argwhere(yl==iul)
-                    lab_matrix[idrow,iiu] = len(idlabs)/len(ids)
-                    idlabs = np.argwhere(yl_sh==iul)
-                    lab_matrix_sh[idrow,iiu] = len(idlabs)/len(ids)
-
+                    if len( np.argwhere(utype==iul).flatten())>0:
+                        idrow = np.argwhere(utype==iul).flatten()[0]
+                        idlabs = np.argwhere(yl==iul)
+                        lab_matrix[idrow,iiu] = len(idlabs)/len(ids)
+                        idlabs = np.argwhere(yl_sh==iul)
+                        lab_matrix_sh[idrow,iiu] = len(idlabs)/len(ids)
+                    
+                        
+                    
             results['label_mat_trial_type'] = lab_matrix
             results['label_mat_trial_type_sh'] = lab_matrix_sh
             pos=ax[0].imshow(lab_matrix,aspect='auto',cmap='hot')
@@ -364,19 +369,20 @@ for ib in range(3):#range(len(brain_reg_interest)):
             id_rand = np.random.randint(0,len(y_train),size=len(y_train))
             clf_sh.fit(X_train, y_train[id_rand])
             utype= np.unique(y_test)
-            lab_matrix = np.zeros((len(utype),len(utype)))
-            lab_matrix_sh = np.zeros((len(utype),len(utype)))
+            lab_matrix = np.nan*np.ones((len(utype),len(utype)))
+            lab_matrix_sh = np.nan*np.ones((len(utype),len(utype)))
             for (iu,iiu) in zip(utype,range(len(utype))):
                 ids = np.argwhere(y_test==iu).flatten()
                 yl = clf.predict(X_test[ids,:]) 
                 yl_sh = clf_sh.predict(X_test[ids,:]) 
                 upred = np.unique(yl)
                 for (iul,iiul) in zip(upred,range(len(upred))):
-                    idrow = np.argwhere(utype==iul).flatten()[0]
-                    idlabs = np.argwhere(yl==iul)
-                    lab_matrix[idrow,iiu] = len(idlabs)/len(ids)
-                    idlabs = np.argwhere(yl_sh==iul)
-                    lab_matrix_sh[idrow,iiu] = len(idlabs)/len(ids)
+                    if len( np.argwhere(utype==iul).flatten())>0:
+                        idrow = np.argwhere(utype==iul).flatten()[0]
+                        idlabs = np.argwhere(yl==iul)
+                        lab_matrix[idrow,iiu] = len(idlabs)/len(ids)
+                        idlabs = np.argwhere(yl_sh==iul)
+                        lab_matrix_sh[idrow,iiu] = len(idlabs)/len(ids)
 
             results['label_mat_micro_state'] = lab_matrix
             results['label_mat_micro_state_sh'] = lab_matrix_sh
@@ -442,8 +448,8 @@ for ib in range(3):#range(len(brain_reg_interest)):
                         lab_matrix_sh[idrow,iiu] = np.nan
                         sc_matrix[iiu] = np.nan
                         sc_matrix_sh[iiu] = np.nan
-                results['label_mat_micro_state' + '_type_' + str(iu)] = lab_matrix
-                results['label_mat_micro_state_sh'+ '_type_' + str(iu)] = lab_matrix_sh
+                results['label_mat_micro_state' + '_type_' + str(iutype)] = lab_matrix
+                results['label_mat_micro_state_sh'+ '_type_' + str(iutype)] = lab_matrix_sh
                 ax[0,iutype].imshow(lab_matrix,aspect='auto',cmap='hot')
                 plot_config(ax[0,iutype],'True label','Predicted label',14,False)
                 fig.colorbar(pos, ax=ax[0,iutype])
@@ -466,7 +472,7 @@ for ib in range(3):#range(len(brain_reg_interest)):
 
 
             #% % create a binary pickle file 
-            fname = os.path.join(analysis_path,brain_reg+ '_' +session_n + '_' +  mouse + '_' + 'mutual_info.pkl')
+            fname = os.path.join(analysis_path,brain_reg+ '_' +session_n + '_' +  mouse + '_' + 'classification.pkl')
             f = open(fname,"wb")
             pickle.dump(results,f)
             f.close()

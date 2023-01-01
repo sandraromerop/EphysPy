@@ -52,8 +52,8 @@ brain_reg_interest = ['IL','PL','ORB','MOp','MOs','ACB','CP','STR','AON','MOB',"
 plot_metr = ['contam_rate','isi_viol','presence_ratio','firing_rate']
 thresholds = [.5,.7]
 
-for ib in range(3,len(brain_reg_interest)):
-    for ici in range(len(categories)):
+for ib in [len(brain_reg_interest)-1]:#[2]:#range(3,len(brain_reg_interest)):
+    for ici in range(2,len(categories)):
         icat = categories[ici]
         brain_reg  = brain_reg_interest[ib]
         id_cat = np.intersect1d(np.argwhere(np.asarray(d_['phase']== icat[0])==True),np.argwhere(np.asarray(d_['batch']== icat[1])==True))
@@ -88,14 +88,14 @@ for ib in range(3,len(brain_reg_interest)):
                 irow = rows_pass[id_neuron_this_sess]
                 mouse = sel_mice[id_neuron_this_sess]
                 session_n  = sel_sessions[id_neuron_this_sess]
-                save_path_n = os.path.join(save_path,session_n)
+                save_path_n = os.path.join(save_path,session_n+ '_' + brain_reg + '_'+ mouse)
                 if not os.path.isdir(save_path_n):
                     os.mkdir(save_path_n)
                 this_session = sel_sessions[id_neuron_this_sess]
                 this_neuron = sel_neurons[id_neuron_this_sess]
                 this_neuron_id = sel_neurons_ids[id_neuron_this_sess]
                 
-                print('Unit # :' + str(this_neuron_id) + ' || mouse: '+  mouse + ' || session: ' + this_session + '||'  + str(id_count) + ' of '+ str(n_neurons_this_sess))
+                print('Brain Region: ' + brain_reg + ' || Category: '  + icat[-1] +  '|| Unit # :' + str(this_neuron_id) + ' || mouse: '+  mouse + ' || session: ' + this_session + '||'  + str(id_count) + ' of '+ str(n_neurons_this_sess))
                 sp_dir = os.path.join(nas_drive,'Sandra','Extracted_Data',protocol_name,'Spikes',mouse,'SingleUnitData')
                 sp_mat = loadmat(os.path.join(sp_dir,this_neuron))
                 sp = sp_mat['responses']['spikes']

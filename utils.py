@@ -1,5 +1,6 @@
 import scipy.io as scio
 import os 
+import pickle
 import mat73
 import numpy as np
 import csv
@@ -115,6 +116,12 @@ def get_gpio_idx(gp, thres_gpio):
         gpio_trials = None
 
     return gpio_trials
+
+def load_pickle(file_name):
+    with open(file_name, 'rb') as handle:
+        b = pickle.load(handle)
+    
+    return b
 
 
 def get_protocol_phase_BS(irow,name_sessions,date_sessions,prot_sessions,phase_sessions):

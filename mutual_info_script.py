@@ -65,7 +65,9 @@ ms_per_bin = 50
 win_range = [0, 10000]
 nshuff = 100
 tr_common = [1,2,3,4]
-for ib in range(1,3):#len(brain_reg_interest)):
+#  ORB Batch2_Task1 20220524 BS007
+# 
+for ib in [len(brain_reg_interest)-1]:#range(2,len(brain_reg_interest)):
     for ici in range(len(categories)):
         icat = categories[ici]
         brain_reg  = brain_reg_interest[ib]
@@ -103,7 +105,7 @@ for ib in range(1,3):#len(brain_reg_interest)):
             results['parameters']['ms_per_bin']=ms_per_bin
             results['parameters']['nshuff']=nshuff
 
-            print('Processing for MI for: ' + brain_reg+ '_' +session_n + '_' +  mouse )
+            print('Processing for MI for: ' + brain_reg+ ' ' + icat[-1] +' ' +session_n + ' ' +  mouse )
             
             sp_dir = os.path.join(nas_drive,'Sandra','Extracted_Data',protocol_name,'Spikes',mouse,'SingleUnitData')
             sp_mat = loadmat(os.path.join(sp_dir,this_neuron))
@@ -132,11 +134,11 @@ for ib in range(1,3):#len(brain_reg_interest)):
             spbins_all =[]
             print('loading spike bins ...')
             for (tr_type,iit) in zip(tr_common,np.arange(len(tr_common))):
-                res_path =  os.path.join(save_path,session_n,'trial_type_'+str(tr_type),'results')
-                path_to_data = os.path.join(save_path,session_n,'trial_type_' + str(tr_type))
+                res_path =  os.path.join(save_path,session_n+ '_' + brain_reg + '_'+ mouse,'trial_type_'+str(tr_type),'results')
+                path_to_data = os.path.join(save_path,session_n+ '_' + brain_reg + '_'+ mouse,'trial_type_' + str(tr_type))
                 file_list = glob.glob(os.path.join(res_path,"*.json"))
+                
                 cell_ids = np.unique([ii.split('/')[-1].split('.json')[0].split('_')[-1] for ii in file_list])
-                # data_processor = analysis.DataProcessor(path_to_data, cell_range, win_range)
                 data_processor = DataProcessor(path_to_data, cell_range, win_range)
                 spbins = data_processor.spikes_binned
                 spbins = [spbins[ii] for ii in range(len(spbins))]
